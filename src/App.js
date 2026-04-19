@@ -74,11 +74,20 @@ function AlfajorCard({ alfajor, rank }) {
 }
 
 function AdminModal({ onClose, onSaved }) {
-  const [form, setForm] = useState({ nombre: '', categoria: '', puntaje: '', precio: '', descripcion: '', foto_url: '' })
+  const [form, setForm] = useState({ nombre: '', categoria: '', puntaje: '', precio: '', descripcion: '' })
+  const [fotoFile, setFotoFile] = useState(null)
+  const [fotoPreview, setFotoPreview] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const handle = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+  const handleFoto = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    setFotoFile(file)
+    setFotoPreview(URL.createObjectURL(file))
+  }
 
   const submit = async () => {
     if (!form.nombre || !form.categoria || !form.puntaje) {
@@ -92,14 +101,35 @@ function AdminModal({ onClose, onSaved }) {
     }
     setLoading(true)
     setError('')
+
+    let foto_url = null
+
+    if (fotoFile) {
+      const ext = fotoFile.name.split('.').pop()
+      const fileName = `${Date.now()}.${ext}`
+      const { error: uploadError } = await supabase.storage
+        .from('fotos')
+        .upload(fileName, fotoFile, { cacheControl: '3600', upsert: false })
+
+      if (uploadError) {
+        setError('Error al subir la foto: ' + uploadError.message)
+        setLoading(false)
+        return
+      }
+
+      const { data: urlData } = supabase.storage.from('fotos').getPublicUrl(fileName)
+      foto_url = urlData.publicUrl
+    }
+
     const { error: err } = await supabase.from('alfajores').insert([{
       nombre: form.nombre,
       categoria: form.categoria,
       puntaje,
       precio: form.precio ? parseFloat(form.precio) : null,
       descripcion: form.descripcion || null,
-      foto_url: form.foto_url || null,
+      foto_url,
     }])
+
     setLoading(false)
     if (err) { setError('Error al guardar: ' + err.message); return }
     onSaved()
@@ -108,7 +138,7 @@ function AdminModal({ onClose, onSaved }) {
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-[1.5rem] shadow-2xl w-full max-w-md p-6">
+      <div className="bg-white rounded-[1.5rem] shadow-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-xl font-black text-gray-900" style={{fontFamily:'Georgia,serif'}}>Nuevo Alfajor 🍫</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
@@ -138,7 +168,7 @@ function AdminModal({ onClose, onSaved }) {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Precio (opcional)</label>
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Precio en pesos (opcional)</label>
             <input type="number" className="w-full mt-1 px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300" placeholder="Ej: 2800" value={form.precio} onChange={e => handle('precio', e.target.value)} />
           </div>
 
@@ -148,8 +178,17 @@ function AdminModal({ onClose, onSaved }) {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">URL de foto (opcional)</label>
-            <input className="w-full mt-1 px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300" placeholder="https://..." value={form.foto_url} onChange={e => handle('foto_url', e.target.value)} />
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Foto (opcional)</label>
+            <div className="mt-1">
+              {fotoPreview && (
+                <img src={fotoPreview} alt="preview" className="w-full h-32 object-cover rounded-xl mb-2" />
+              )}
+              <label className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border-2 border-dashed border-gray-200 text-sm text-gray-500 hover:border-amber-300 hover:text-amber-600 cursor-pointer transition-colors">
+                <span>📷</span>
+                <span>{fotoFile ? fotoFile.name : 'Elegir foto desde tu dispositivo'}</span>
+                <input type="file" accept="image/*" className="hidden" onChange={handleFoto} />
+              </label>
+            </div>
           </div>
 
           {error && <p className="text-red-500 text-xs">{error}</p>}
@@ -192,7 +231,7 @@ export default function App() {
 
         <div className="mb-6">
           <h1 className="text-4xl font-black text-gray-900 tracking-tight" style={{fontFamily:'Georgia,serif'}}>
-            ALFAJOR Tier List
+            Alfajores Tier List 
           </h1>
           <p className="text-gray-400 text-sm mt-1">
             {alfajores.length} {alfajores.length === 1 ? 'alfajor catado' : 'alfajores catados'}, ordenados por puntaje
