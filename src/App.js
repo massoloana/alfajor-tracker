@@ -289,28 +289,30 @@ export default function App() {
     <div className="min-h-screen bg-gray-50">
 
       {/* Banner */}
-      <div className="relative w-full h-48 overflow-hidden">
+      <div className="relative w-full h-96 overflow-hidden">
         <img src={BANNER_URL} alt="banner" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-black/20" />
-        <img
-          src={FOTO_CHICA_URL}
-          alt="autor"
-          className="absolute bottom-0 left-6 w-24 h-24 object-cover rounded-2xl border-4 border-white shadow-lg"
-        />
       </div>
 
       <div className="max-w-2xl mx-auto px-4 py-8">
 
-        <div className="mb-6">
-          <h1 className="text-4xl font-black text-gray-900 tracking-tight" style={{fontFamily:'Georgia,serif'}}>
-            Alfajores Tier List
-          </h1>
-          <p className="text-gray-500 text-sm mt-3 leading-relaxed max-w-xl">
-            Desde lo más profundo de mi subjetividad llega este ranking que nadie pidió. Un estudio exhaustivo basado 100% en mi paladar y mi criterio totalmente arbitrario. Varios de estos fueron donados por amigues, ninguno fue rechazado.
-          </p>
-          <p className="text-gray-400 text-xs mt-3">
-            {alfajores.length} {alfajores.length === 1 ? 'alfajor catado' : 'alfajores catados'}, ordenados por puntaje
-          </p>
+        <div className="flex items-center gap-4 mb-6">
+          <img
+            src={FOTO_CHICA_URL}
+            alt="autor"
+            className="w-20 h-20 object-cover rounded-2xl border-4 border-white shadow-lg flex-shrink-0"
+          />
+          <div>
+            <h1 className="text-4xl font-black text-gray-900 tracking-tight" style={{fontFamily:'Georgia,serif'}}>
+              ALFAJORES TIER LIST
+            </h1>
+            <p className="text-gray-500 text-sm mt-2 leading-relaxed">
+              Desde lo más profundo de mi subjetividad llega este ranking que nadie pidió. Un estudio exhaustivo basado 100% en mi paladar y mi criterio totalmente arbitrario. Varios de estos fueron donados por amigues, ninguno fue rechazado.
+            </p>
+            <p className="text-gray-400 text-xs mt-2">
+              {alfajores.length} {alfajores.length === 1 ? 'alfajor catado' : 'alfajores catados'}, ordenados por puntaje
+            </p>
+          </div>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap mb-6">
