@@ -19,7 +19,7 @@ const CARD_BG = {
 const EMOJI_CAT = {
   'Havanna':    '🏅',
   'Kiosco BBB': '🛒',
-  'Artesanal':  '🤌',
+  'Artesanal':  '👨‍🍳',
 }
 
 function StarRating({ score }) {
@@ -192,7 +192,7 @@ export default function App() {
 
         <div className="mb-6">
           <h1 className="text-4xl font-black text-gray-900 tracking-tight" style={{fontFamily:'Georgia,serif'}}>
-            Alfajor Tracker 🍫
+            ALFAJOR Tier List
           </h1>
           <p className="text-gray-400 text-sm mt-1">
             {alfajores.length} {alfajores.length === 1 ? 'alfajor catado' : 'alfajores catados'}, ordenados por puntaje
