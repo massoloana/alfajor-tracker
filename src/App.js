@@ -1,28 +1,30 @@
-
 import { useState, useEffect } from 'react'
 import { supabase } from './supabase'
- 
+
 const ADMIN_KEY = 'alfajor2024'
-const CATEGORIAS = ['Havanna', 'Kiosco BBB', 'Artesanal']
- 
+const CATEGORIAS = ['Havanna', 'Kioscos', 'Artesanal']
+
 const BADGE_STYLES = {
-  'Havanna':    'bg-amber-100 text-amber-800',
-  'Kiosco BBB': 'bg-teal-100 text-teal-800',
-  'Artesanal':  'bg-rose-100 text-rose-800',
+  'Havanna':   'bg-amber-100 text-amber-800',
+  'Kioscos':   'bg-orange-100 text-orange-800',
+  'Artesanal': 'bg-blue-100 text-blue-800',
 }
- 
+
 const CARD_BG = {
-  'Havanna':    'from-amber-50 to-orange-50',
-  'Kiosco BBB': 'from-teal-50 to-emerald-50',
-  'Artesanal':  'from-rose-50 to-pink-50',
+  'Havanna':   'from-amber-50 to-orange-50',
+  'Kioscos':   'from-orange-50 to-red-50',
+  'Artesanal': 'from-blue-50 to-indigo-50',
 }
- 
+
 const EMOJI_CAT = {
-  'Havanna':    '🏅',
-  'Kiosco BBB': '🛒',
-  'Artesanal':  '🤌',
+  'Havanna':   '🏅',
+  'Kioscos':   '🛒',
+  'Artesanal': '🤌',
 }
- 
+
+const BANNER_URL = 'https://zcdcrxdabedyxhppyufa.supabase.co/storage/v1/object/public/fotos/banner%20alfajores.png'
+const FOTO_CHICA_URL = 'https://zcdcrxdabedyxhppyufa.supabase.co/storage/v1/object/public/fotos/111111111.jpg'
+
 function StarRating({ score }) {
   return (
     <div className="flex gap-0.5">
@@ -32,10 +34,10 @@ function StarRating({ score }) {
     </div>
   )
 }
- 
+
 function AlfajorCard({ alfajor, rank, isAdmin, onEdit, onDelete }) {
   const [confirmDelete, setConfirmDelete] = useState(false)
- 
+
   return (
     <div className={`relative rounded-[1.5rem] overflow-hidden bg-gradient-to-br ${CARD_BG[alfajor.categoria] || 'from-gray-50 to-gray-100'} border border-white/80 shadow-sm hover:-translate-y-1 transition-transform duration-200`}>
       {rank === 1 && (
@@ -50,16 +52,18 @@ function AlfajorCard({ alfajor, rank, isAdmin, onEdit, onDelete }) {
       )}
       <div className="p-4">
         <div className="flex items-center justify-between mb-2">
-          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${BADGE_STYLES[alfajor.categoria] || 'bg-gray-100 text-gray-700'}`}>
-            {alfajor.categoria}
-          </span>
+          {alfajor.categoria ? (
+            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${BADGE_STYLES[alfajor.categoria] || 'bg-gray-100 text-gray-700'}`}>
+              {alfajor.categoria}
+            </span>
+          ) : <span />}
           <span className="text-xs text-gray-400 font-medium">#{rank}</span>
         </div>
         <h3 className="font-black text-gray-900 text-base leading-tight mb-1" style={{fontFamily:'Georgia,serif'}}>
           {alfajor.nombre}
         </h3>
         {alfajor.descripcion && (
-          <p className="text-xs text-gray-500 mb-3 leading-relaxed line-clamp-2">{alfajor.descripcion}</p>
+          <p className="text-xs text-gray-500 mb-3 leading-relaxed">{alfajor.descripcion}</p>
         )}
         <StarRating score={alfajor.puntaje} />
         <div className="flex items-end justify-between mt-2">
@@ -71,7 +75,7 @@ function AlfajorCard({ alfajor, rank, isAdmin, onEdit, onDelete }) {
             <span className="text-sm text-gray-500 font-medium">${Number(alfajor.precio).toLocaleString('es-AR')}</span>
           )}
         </div>
- 
+
         {isAdmin && (
           <div className="flex gap-2 mt-3 pt-3 border-t border-black/5">
             <button onClick={() => onEdit(alfajor)}
@@ -95,7 +99,7 @@ function AlfajorCard({ alfajor, rank, isAdmin, onEdit, onDelete }) {
     </div>
   )
 }
- 
+
 function AdminModal({ onClose, onSaved, editando }) {
   const [form, setForm] = useState({
     nombre: editando?.nombre || '',
@@ -108,19 +112,19 @@ function AdminModal({ onClose, onSaved, editando }) {
   const [fotoPreview, setFotoPreview] = useState(editando?.foto_url || null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
- 
+
   const handle = (k, v) => setForm(f => ({ ...f, [k]: v }))
- 
+
   const handleFoto = (e) => {
     const file = e.target.files[0]
     if (!file) return
     setFotoFile(file)
     setFotoPreview(URL.createObjectURL(file))
   }
- 
+
   const submit = async () => {
-    if (!form.nombre || !form.categoria || !form.puntaje) {
-      setError('Nombre, categoría y puntaje son obligatorios.')
+    if (!form.nombre || !form.puntaje) {
+      setError('Nombre y puntaje son obligatorios.')
       return
     }
     const puntaje = parseFloat(form.puntaje)
@@ -130,35 +134,35 @@ function AdminModal({ onClose, onSaved, editando }) {
     }
     setLoading(true)
     setError('')
- 
+
     let foto_url = editando?.foto_url || null
- 
+
     if (fotoFile) {
       const ext = fotoFile.name.split('.').pop()
       const fileName = `${Date.now()}.${ext}`
       const { error: uploadError } = await supabase.storage
         .from('fotos')
         .upload(fileName, fotoFile, { cacheControl: '3600', upsert: false })
- 
+
       if (uploadError) {
         setError('Error al subir la foto: ' + uploadError.message)
         setLoading(false)
         return
       }
- 
+
       const { data: urlData } = supabase.storage.from('fotos').getPublicUrl(fileName)
       foto_url = urlData.publicUrl
     }
- 
+
     const payload = {
       nombre: form.nombre,
-      categoria: form.categoria,
+      categoria: form.categoria || null,
       puntaje,
       precio: form.precio ? parseFloat(form.precio) : null,
       descripcion: form.descripcion || null,
       foto_url,
     }
- 
+
     let err
     if (editando) {
       const { error: e } = await supabase.from('alfajores').update(payload).eq('id', editando.id)
@@ -167,13 +171,13 @@ function AdminModal({ onClose, onSaved, editando }) {
       const { error: e } = await supabase.from('alfajores').insert([payload])
       err = e
     }
- 
+
     setLoading(false)
     if (err) { setError('Error al guardar: ' + err.message); return }
     onSaved()
     onClose()
   }
- 
+
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-[1.5rem] shadow-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
@@ -183,40 +187,40 @@ function AdminModal({ onClose, onSaved, editando }) {
           </h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
         </div>
- 
+
         <div className="space-y-3">
           <div>
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Nombre *</label>
             <input className="w-full mt-1 px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300" placeholder="Ej: Havanna Clásico" value={form.nombre} onChange={e => handle('nombre', e.target.value)} />
           </div>
- 
+
           <div>
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Categoría *</label>
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Categoría <span className="normal-case font-normal text-gray-400">(opcional)</span></label>
             <div className="flex gap-2 mt-1 flex-wrap">
               {CATEGORIAS.map(c => (
-                <button key={c} onClick={() => handle('categoria', c)}
+                <button key={c} onClick={() => handle('categoria', form.categoria === c ? '' : c)}
                   className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${form.categoria === c ? 'bg-gray-900 text-white border-gray-900' : 'border-gray-200 text-gray-600 hover:border-gray-400'}`}>
                   {c}
                 </button>
               ))}
             </div>
           </div>
- 
+
           <div>
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Puntaje (0-10) *</label>
             <input type="number" min="0" max="10" step="0.1" className="w-full mt-1 px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300" placeholder="Ej: 8.5" value={form.puntaje} onChange={e => handle('puntaje', e.target.value)} />
           </div>
- 
+
           <div>
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Precio en pesos (opcional)</label>
             <input type="number" className="w-full mt-1 px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300" placeholder="Ej: 2800" value={form.precio} onChange={e => handle('precio', e.target.value)} />
           </div>
- 
+
           <div>
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Descripción / Notas (opcional)</label>
-            <textarea className="w-full mt-1 px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 resize-none" rows={2} placeholder="Ej: Cobertura de chocolate negro, relleno generoso..." value={form.descripcion} onChange={e => handle('descripcion', e.target.value)} />
+            <textarea className="w-full mt-1 px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 resize-none" rows={3} placeholder="Ej: Cobertura de chocolate negro, relleno generoso..." value={form.descripcion} onChange={e => handle('descripcion', e.target.value)} />
           </div>
- 
+
           <div>
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Foto (opcional)</label>
             <div className="mt-1">
@@ -230,9 +234,9 @@ function AdminModal({ onClose, onSaved, editando }) {
               </label>
             </div>
           </div>
- 
+
           {error && <p className="text-red-500 text-xs">{error}</p>}
- 
+
           <button onClick={submit} disabled={loading}
             className="w-full py-3 rounded-xl bg-gray-900 text-white font-semibold text-sm hover:bg-gray-700 transition-colors disabled:opacity-50 mt-2">
             {loading ? 'Guardando...' : editando ? 'Guardar cambios' : 'Guardar Alfajor'}
@@ -242,7 +246,7 @@ function AdminModal({ onClose, onSaved, editando }) {
     </div>
   )
 }
- 
+
 export default function App() {
   const [alfajores, setAlfajores] = useState([])
   const [filtro, setFiltro] = useState('Todos')
@@ -250,50 +254,65 @@ export default function App() {
   const [showModal, setShowModal] = useState(false)
   const [editando, setEditando] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
- 
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     if (params.get('admin') === ADMIN_KEY) setIsAdmin(true)
     fetchAlfajores()
   }, [])
- 
+
   const fetchAlfajores = async () => {
     setLoading(true)
     const { data } = await supabase.from('alfajores').select('*').order('puntaje', { ascending: false })
     setAlfajores(data || [])
     setLoading(false)
   }
- 
+
   const handleEdit = (alfajor) => {
     setEditando(alfajor)
     setShowModal(true)
   }
- 
+
   const handleDelete = async (id) => {
     await supabase.from('alfajores').delete().eq('id', id)
     fetchAlfajores()
   }
- 
+
   const handleClose = () => {
     setShowModal(false)
     setEditando(null)
   }
- 
+
   const filtrados = filtro === 'Todos' ? alfajores : alfajores.filter(a => a.categoria === filtro)
- 
+
   return (
     <div className="min-h-screen bg-gray-50">
+
+      {/* Banner */}
+      <div className="relative w-full h-48 overflow-hidden">
+        <img src={BANNER_URL} alt="banner" className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-black/20" />
+        <img
+          src={FOTO_CHICA_URL}
+          alt="autor"
+          className="absolute bottom-0 left-6 w-24 h-24 object-cover rounded-2xl border-4 border-white shadow-lg"
+        />
+      </div>
+
       <div className="max-w-2xl mx-auto px-4 py-8">
- 
+
         <div className="mb-6">
           <h1 className="text-4xl font-black text-gray-900 tracking-tight" style={{fontFamily:'Georgia,serif'}}>
             Alfajores Tier List
           </h1>
-          <p className="text-gray-400 text-sm mt-1">
+          <p className="text-gray-500 text-sm mt-3 leading-relaxed max-w-xl">
+            Desde lo más profundo de mi subjetividad llega este ranking que nadie pidió. Un estudio exhaustivo basado 100% en mi paladar y mi criterio totalmente arbitrario. Varios de estos fueron donados por amigues, ninguno fue rechazado.
+          </p>
+          <p className="text-gray-400 text-xs mt-3">
             {alfajores.length} {alfajores.length === 1 ? 'alfajor catado' : 'alfajores catados'}, ordenados por puntaje
           </p>
         </div>
- 
+
         <div className="flex items-center gap-2 flex-wrap mb-6">
           {['Todos', ...CATEGORIAS].map(cat => (
             <button key={cat} onClick={() => setFiltro(cat)}
@@ -308,7 +327,7 @@ export default function App() {
             </button>
           )}
         </div>
- 
+
         {loading ? (
           <div className="text-center py-20 text-gray-400">Cargando ranking...</div>
         ) : filtrados.length === 0 ? (
@@ -330,7 +349,7 @@ export default function App() {
           </div>
         )}
       </div>
- 
+
       {showModal && (
         <AdminModal
           onClose={handleClose}
@@ -341,4 +360,3 @@ export default function App() {
     </div>
   )
 }
- 
