@@ -22,7 +22,6 @@ const EMOJI_CAT = {
   'Artesanal': '🤌',
 }
 
-const BANNER_URL = 'https://zcdcrxdabedyxhppyufa.supabase.co/storage/v1/object/public/fotos/banner%20alfajores.png'
 const FOTO_CHICA_URL = 'https://zcdcrxdabedyxhppyufa.supabase.co/storage/v1/object/public/fotos/111111111.jpg'
 
 function StarRating({ score }) {
@@ -287,27 +286,20 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-
-      {/* Banner */}
-      <div className="relative w-full h-96 overflow-hidden">
-        <img src={BANNER_URL} alt="banner" className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-black/20" />
-      </div>
-
       <div className="max-w-2xl mx-auto px-4 py-8">
 
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-stretch gap-4 mb-6">
           <img
             src={FOTO_CHICA_URL}
             alt="autor"
-            className="w-20 h-20 object-cover rounded-2xl border-4 border-white shadow-lg flex-shrink-0"
+            className="w-24 h-24 sm:w-auto sm:h-auto object-cover rounded-2xl shadow-lg flex-shrink-0 self-start sm:self-stretch"
           />
           <div>
             <h1 className="text-4xl font-black text-gray-900 tracking-tight" style={{fontFamily:'Georgia,serif'}}>
               ALFAJORES TIER LIST
             </h1>
             <p className="text-gray-500 text-sm mt-2 leading-relaxed">
-              Desde lo más profundo de mi subjetividad llega este ranking que nadie pidió. Un estudio exhaustivo basado 100% en mi paladar y mi criterio totalmente arbitrario. Varios de estos fueron donados por amigues, ninguno fue rechazado.
+              Desde lo más profundo de mi subjetividad llega este ranking que nadie pidió. Un estudio exhaustivo basado 100% en mi paladar y en mi criterio totalmente arbitrario. Varios de estos fueron donados por amigues, ninguno fue rechazado.
             </p>
             <p className="text-gray-400 text-xs mt-2">
               {alfajores.length} {alfajores.length === 1 ? 'alfajor catado' : 'alfajores catados'}, ordenados por puntaje
